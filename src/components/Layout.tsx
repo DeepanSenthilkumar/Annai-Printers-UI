@@ -25,7 +25,7 @@ export default function Layout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F5F8FC]">
-      <header className="h-[70px] bg-white shadow-sm flex items-center justify-between px-10">
+      <header className="h-[70px] bg-white shadow-sm flex items-center justify-between px-10 print:hidden">
         
         <h1 className="text-xl font-bold text-[#1F8CF9]">
           Annai Printers
@@ -61,7 +61,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         {children}
       </main>
 
-      <footer className="h-[50px] bg-white border-t flex items-center justify-center text-sm text-[#575E6B]">
+      <footer className="h-[50px] bg-white border-t flex items-center justify-center text-sm text-[#575E6B] print:hidden">
         © 2026 Annai Printers. All rights reserved.
       </footer>
     </div>

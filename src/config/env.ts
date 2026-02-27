@@ -1,7 +1,3 @@
-// export const ENV = {
-//   API_BASE_URL: import.meta.env.VITE_API_BASE_URL as string,
-// };
-
 export const ENV = {
   AUTH_URL: import.meta.env.VITE_API_AUTH_URL as string,
   MAIN_URL: import.meta.env.VITE_API_MAIN_URL as string,
