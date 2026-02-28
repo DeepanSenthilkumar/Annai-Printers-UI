@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, ReactNode } from "react";
+import { useOperatorCart } from "../context/OperatorCartContext";
 
 interface AuthState {
   token: string | null;
@@ -16,6 +17,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(
     localStorage.getItem("token")
   );
+  // const { clearCart} = useOperatorCart();
   const [role, setRole] = useState<"Admin" | "Operator" | null>(
     (localStorage.getItem("role") as "Admin" | "Operator") || null
   );
@@ -29,6 +31,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = () => {
     localStorage.clear();
+    // clearCart()
     setToken(null);
     setRole(null);
   };

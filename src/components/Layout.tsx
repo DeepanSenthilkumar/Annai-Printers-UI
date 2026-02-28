@@ -1,10 +1,12 @@
 import { ReactNode, useState, useEffect, useRef } from "react";
 import { useAuth } from "../auth/AuthContext";
+import { useOperatorCart } from "../context/OperatorCartContext";
 
 export default function Layout({ children }: { children: ReactNode }) {
   const { logout } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { clearCart } = useOperatorCart();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -22,6 +24,14 @@ export default function Layout({ children }: { children: ReactNode }) {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  const triggerLogout = () => {
+    debugger
+    if( localStorage.getItem('role') === 'Operator'){
+      clearCart()
+    }
+    logout()
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F5F8FC]">
@@ -49,7 +59,7 @@ export default function Layout({ children }: { children: ReactNode }) {
 
           {showMenu && (
             <div className="absolute right-0 mt-3 bg-white shadow-lg rounded-md w-36 py-2 border">
-              <button onClick={logout} className="w-full text-left px-4 py-2 hover:bg-gray-100 text-red-500">
+              <button onClick={triggerLogout} className="w-full text-left px-4 py-2 hover:bg-gray-100 text-red-500">
                 Logout
               </button>
             </div>

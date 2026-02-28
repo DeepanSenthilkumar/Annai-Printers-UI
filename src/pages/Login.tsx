@@ -10,13 +10,29 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  try {
     const res = await ApiService.login(email, password);
-    if (res.isAdded) {
-      login(res.token, res.role);
-      navigate(res.role === "Admin" ? "/admin" : "/operator");
+
+    if (!res.isAdded) {
+      // show error
+      return;
     }
-  };
+
+    login(res.token, res.role);
+
+    if (res.role === "Admin") {
+      navigate("/admin");
+    } else {
+      navigate("/operator");
+    }
+
+  } catch (err) {
+    console.error(err);
+  }
+};
 
   return (
     <>
@@ -94,7 +110,7 @@ export default function Login() {
               Please enter your credentials to access the billing portal.
             </p>
 
-            <div className="mt-8 flex flex-col gap-6">
+            <form onClick={handleSubmit} className="mt-8 flex flex-col gap-6">
               <div className="flex flex-col gap-2">
                 <label htmlFor="">User Id</label>
                 <div className="relative"> {/* CHANGED: relative wrapper */}
@@ -123,8 +139,8 @@ export default function Login() {
 
               <button className="w-full h-[48px] flex items-center justify-center text-[16px] font-semibold leading-[26px] text-white bg-[#1F8CF9]
                rounded-md shadow-[0px_2px_4px_rgba(0,0,0,0.07)] hover:bg-[#1F8CF9] active:bg-[#1F8CF9] disabled:opacity-40" 
-               onClick={handleLogin}>Login</button>
-            </div>
+               type="submit">Login</button>
+            </form>
           </div>
         </div>
       </div>

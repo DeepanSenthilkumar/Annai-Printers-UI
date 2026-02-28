@@ -7,23 +7,26 @@ import AdminPage1 from "./pages/AdminPage1";
 import AdminPage2 from "./pages/AdminPage2";
 import OperatorPage1 from "./pages/OperatorPage1";
 import OperatorPage2 from "./pages/OperatorPage2";
+import { OperatorCartProvider } from "./context/OperatorCartContext";
 
 function App() {
   return (
       <AuthProvider>
-        <Routes>
-          <Route path="/login" element={<Login />} />
+        <OperatorCartProvider>
+          <Routes>
+            <Route path="/login" element={<Login />} />
 
-          <Route path="/admin" element={ <ProtectedRoute allowedRoles={["Admin"]}><AdminPage1 /></ProtectedRoute> }/>
+            <Route path="/admin" element={ <ProtectedRoute allowedRoles={["Admin"]}><AdminPage1 /></ProtectedRoute> }/>
 
-          <Route path="/detailView" element={ <ProtectedRoute allowedRoles={["Admin"]}><AdminPage2 /></ProtectedRoute> }/>
+            <Route path="/detailView" element={ <ProtectedRoute allowedRoles={["Admin"]}><AdminPage2 /></ProtectedRoute> }/>
 
-          <Route path="/operator" element={ <ProtectedRoute allowedRoles={["Operator"]}><OperatorPage1 /></ProtectedRoute> }/>
+            <Route path="/operator" element={ <ProtectedRoute allowedRoles={["Operator"]}><OperatorPage1 /></ProtectedRoute> }/>
 
-          <Route path="/calculation" element={ <ProtectedRoute allowedRoles={["Operator"]}><OperatorPage2 /></ProtectedRoute> }/>
+            <Route path="/calculation" element={ <ProtectedRoute allowedRoles={["Operator"]}><OperatorPage2 /></ProtectedRoute> }/>
 
-          <Route path="*" element={<Navigate to="/login" />} />
-        </Routes>
+            <Route path="*" element={<Navigate to="/login" />} />
+          </Routes>
+        </OperatorCartProvider>
       </AuthProvider>
   );
 }
