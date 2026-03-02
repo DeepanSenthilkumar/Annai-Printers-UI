@@ -9,30 +9,58 @@ export default function Login() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [touched, setTouched] = useState({ email: false, password: false });
+
+  
+  const validateEmail = (value: string) => {
+    if (!value.trim()) return "User Id is required";
+    return "";
+  };
+  
+  const validatePassword = (value: string) => {
+    if (!value) return "Password is required";
+    
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+    
+    if (!regex.test(value)) {
+      return "Password must be 8+ chars, include upper, lower, number, special character";
+    }
+    
+    return "";
+  };
+  
+  const emailError = validateEmail(email);
+  const passwordError = validatePassword(password);
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+    debugger
+    e.preventDefault();
+    setTouched({ email: true, password: true });
 
-  try {
-    const res = await ApiService.login(email, password);
-
-    if (!res.isAdded) {
-      // show error
+    if (emailError || passwordError) {
       return;
     }
 
-    login(res.token, res.role);
+    try {
+      const res = await ApiService.login(email, password);
 
-    if (res.role === "Admin") {
-      navigate("/admin");
-    } else {
-      navigate("/operator");
+      if (!res.isAdded) {
+        // show error
+        return;
+      }
+
+      login(res.token, res.role);
+
+      if (res.role === "Admin") {
+        navigate("/admin");
+      } else {
+        navigate("/operator");
+      }
+
+    } catch (err) {
+      console.error(err);
     }
-
-  } catch (err) {
-    console.error(err);
-  }
-};
+  };
 
   return (
     <>
@@ -110,7 +138,7 @@ export default function Login() {
               Please enter your credentials to access the billing portal.
             </p>
 
-            <form onClick={handleSubmit} className="mt-8 flex flex-col gap-6">
+            <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-6">
               <div className="flex flex-col gap-2">
                 <label htmlFor="">User Id</label>
                 <div className="relative"> {/* CHANGED: relative wrapper */}
@@ -118,28 +146,43 @@ export default function Login() {
                   <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-[#575E6B] text-[16px]">
                     person
                   </span>
-                  <input type="text" className="w-[333px] h-[53px] pl-10 pr-3 text-[14px] leading-[22px] bg-white border
-                   border-[#E0E2E6] rounded-md outline-none hover:border-[#E0E2E6] focus:border-[#1F8CF9] disabled:text-[#575E6B]" placeholder="Enter your Id" 
-                   onChange={(e) => setEmail(e.target.value)}/>
+                  <input type="text" autoComplete="username" id="userId" name="userId" placeholder="Enter your Id"
+                    value={email} onChange={(e) => {
+                      if (!touched.email) {
+                        setTouched((prev) => ({ ...prev, email: true }));
+                      }
+                      setEmail(e.target.value); }}
+                    className={`w-[333px] h-[53px] pl-10 pr-3 text-[14px] leading-[22px] bg-white border
+                    border-[#E0E2E6] rounded-md outline-none hover:border-[#E0E2E6] focus:border-[#1F8CF9] disabled:text-[#575E6B] 
+                    ${touched.email && emailError? "border-red-500" : "border-[#E0E2E6] focus:border-[#1F8CF9]"}`} 
+                    />
                 </div>
+                    {touched.email && emailError && ( <p className="text-red-500 text-sm">{emailError}</p> )}
               </div>
 
               <div className="flex flex-col gap-2">
                 <label htmlFor="">Password</label>
-                <div className="relative"> {/* CHANGED */}
+                <div className="relative">
 
                   <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-[#575E6B] text-[16px]">
                     lock
                   </span>
-                  <input type="password" className=" w-[333px] h-[53px] pl-10 pr-3 text-[14px] leading-[22px] bg-white border border-[#E0E2E6] 
-                    rounded-md outline-none hover:border-[#E0E2E6] focus:border-[#1F8CF9]" placeholder="Enter password" 
-                    onChange={(e) => setPassword(e.target.value)}/>
+                  <input type="password" autoComplete="current-password" id='password' name="password"
+                    value={password} onChange={(e) => {
+                      if (!touched.password) {
+                        setTouched((prev) => ({ ...prev, password: true }));
+                      }
+                      setPassword(e.target.value); }} 
+                    className={`w-[333px] h-[53px] pl-10 pr-3 text-[14px] leading-[22px] bg-white border 
+                    rounded-md outline-none hover:border-[#E0E2E6] focus:border-[#1F8CF9] ${touched.password && passwordError? "border-red-500" : "border-[#E0E2E6] focus:border-[#1F8CF9]"}`} placeholder="Enter password"
+                  />
                 </div>
+                {touched.password && passwordError && ( <p className="text-red-500 text-sm"> {passwordError} </p>)}
               </div>
 
               <button className="w-full h-[48px] flex items-center justify-center text-[16px] font-semibold leading-[26px] text-white bg-[#1F8CF9]
-               rounded-md shadow-[0px_2px_4px_rgba(0,0,0,0.07)] hover:bg-[#1F8CF9] active:bg-[#1F8CF9] disabled:opacity-40" 
-               type="submit">Login</button>
+               rounded-md shadow-[0px_2px_4px_rgba(0,0,0,0.07)] hover:bg-[#1F8CF9] active:bg-[#1F8CF9] disabled:opacity-40"
+                type="submit">Login</button>
             </form>
           </div>
         </div>
