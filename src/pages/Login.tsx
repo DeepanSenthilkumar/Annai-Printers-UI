@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ApiService } from "../api/services";
 import { useAuth } from "../auth/AuthContext";
+import { toaster } from "../components/toaster";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -38,6 +39,7 @@ export default function Login() {
     setTouched({ email: true, password: true });
 
     if (emailError || passwordError) {
+      toaster.error("Please fill credentials", 'Error');
       return;
     }
 
@@ -50,6 +52,7 @@ export default function Login() {
       }
 
       login(res.token, res.role);
+      toaster.success('Login Success', "Success");
 
       if (res.role === "Admin") {
         navigate("/admin");

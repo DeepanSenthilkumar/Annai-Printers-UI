@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from "react";
-import { useOperatorCart } from "../context/OperatorCartContext";
+import { toaster } from "../components/toaster";
+// import { useOperatorCart } from "../context/OperatorCartContext";
 
 interface AuthState {
   token: string | null;
@@ -33,6 +34,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.clear();
     // clearCart()
     setToken(null);
+    toaster.success('Logged Out', "Success");
     setRole(null);
   };
 

@@ -1,6 +1,8 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./auth/AuthContext";
 import ProtectedRoute from "./auth/ProtectedRoute";
+import { Slide, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 import Login from "./pages/Login";
 import AdminPage1 from "./pages/AdminPage1";
@@ -13,6 +15,7 @@ function App() {
   return (
       <AuthProvider>
         <OperatorCartProvider>
+          <ToastContainer position="top-right" autoClose={2000} hideProgressBar={false} transition={Slide} limit={1} newestOnTop closeOnClick pauseOnHover={false} draggable={false} theme="colored" />
           <Routes>
             <Route path="/login" element={<Login />} />
 
