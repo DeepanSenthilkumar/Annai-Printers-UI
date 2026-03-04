@@ -41,7 +41,7 @@ export default function AdminPage2() {
               ANNAI PRINTERS
             </h2>
             
-            <div className="absolute right-0 top-0 print:hidden" onClick={handlePrint}>
+            <div className="absolute right-0 text-gray-400 top-0 print:hidden hover:text-gray-600" onClick={handlePrint}>
               <button className="material-icons">print</button>
             </div>
           </div>

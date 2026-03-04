@@ -1,29 +1,8 @@
-// import Layout from "../components/Layout";
-
-// export default function OperatorPage1() {
-//   return (
-//     <Layout>
-//       <h1 className="text-3xl font-bold mb-6">Operator Dashboard</h1>
-
-//       <div className="grid grid-cols-2 gap-6">
-//         <div className="bg-white p-6 rounded-xl shadow">
-//           <h3 className="text-gray-600">Today's Jobs</h3>
-//           <p className="text-2xl font-bold mt-2">18</p>
-//         </div>
-
-//         <div className="bg-white p-6 rounded-xl shadow">
-//           <h3 className="text-gray-600">Completed</h3>
-//           <p className="text-2xl font-bold mt-2">10</p>
-//         </div>
-//       </div>
-//     </Layout>
-//   );
-// }
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import { useOperatorCart } from "../context/OperatorCartContext";
+import Tables, { Column } from "../components/Tables";
 
 type ServiceItem = {
   service: string;
@@ -41,6 +20,33 @@ export default function OperatorPage1() {
   // const [items, setItems] = useState<ServiceItem[]>([]);
   const { items, setItems } = useOperatorCart();
   const [editIndex, setEditIndex] = useState<number | null>(null);
+
+  const columns: Column<ServiceItem>[] = [
+    {
+      header: "S.No",
+      accessor: "service",
+      render: (_row: ServiceItem, index: number) => index + 1,
+    },
+    {
+      header: "Service",
+      accessor: "service",
+    },
+    {
+      header: "Page Type",
+      accessor: "pageType",
+    },
+    {
+      header: "Action",
+      accessor: "service",
+      align: "center",
+      cellClassName : "flex justify-center",
+      render: (_row: ServiceItem, index: number) => (
+        <button onClick={() => handleEdit(index)} className="flex items-center p-1 text-blue-600 text-sm hover:text-white hover:bg-blue-600 rounded-md">
+          <span className="material-icons text-[16px]">edit</span>
+        </button>
+      ),
+    },
+  ];
 
   const handleAdd = () => {
     if (!selectedService || !selectedPageType) {
@@ -150,36 +156,7 @@ export default function OperatorPage1() {
       {/* Table Section */}
       {items.length > 0 && (
         <div className="bg-white rounded-xl shadow overflow-hidden mb-8">
-          <table className="w-full">
-            <thead className="bg-gray-200 text-gray-700 text-sm">
-              <tr>
-                <th className="p-3 text-left">S.No</th>
-                <th className="p-3 text-left">Service</th>
-                <th className="p-3 text-left">Page Type</th>
-                <th className="p-3 text-center">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item, index) => (
-                <tr
-                  key={index}
-                  className="border-t hover:bg-gray-50"
-                >
-                  <td className="p-3">{index + 1}</td>
-                  <td className="p-3">{item.service}</td>
-                  <td className="p-3">{item.pageType}</td>
-                  <td className="p-3 text-center">
-                    <button
-                      onClick={() => handleEdit(index)}
-                      className="text-blue-600 hover:underline text-sm"
-                    >
-                      Edit
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <Tables<ServiceItem> columns={columns} data={items}/>
         </div>
       )}
 

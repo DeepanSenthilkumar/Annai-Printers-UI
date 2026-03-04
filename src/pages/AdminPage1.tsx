@@ -1,6 +1,15 @@
 import Layout from "../components/Layout";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import Tables, { Column } from "../components/Tables";
+
+type BillData = {
+  id: number;
+  status: boolean;
+  bill: string;
+  user: string;
+  amount: number;
+};
 
 export default function AdminPage1() {
   const navigate = useNavigate();
@@ -23,9 +32,48 @@ export default function AdminPage1() {
     },
   ];
 
+  const columns: Column<BillData>[] = [
+    {
+      header: "S.No",
+      accessor: "id",
+      render: (_row: BillData, index: number) => index + 1,
+    },
+    {
+      header: "Print Status",
+      accessor: "status",
+      render: (row: BillData) => (
+        <span className={`inline-block w-3 h-3 rounded-full ${row.status ? "bg-[#1F8CF9]" : "bg-green-500"}`}/>
+      ),
+    },
+    { header: "Bill No", accessor: "bill" },
+    { header: "User ID", accessor: "user" },
+    {
+      header: "Total Amount",
+      accessor: "amount",
+      render: (row: BillData) => `₹${row.amount}`,
+    },
+    {
+      header: "Details",
+      accessor: "bill",
+      render: () => (
+        <button onClick={() => navigate("/detailView")} className="text-[#1F8CF9] hover:underline">
+          View
+        </button>
+      ),
+    },
+    {
+      header: "Action",
+      accessor: "bill",
+      render: () => (
+        <button className="text-gray-600 hover:text-[#1F8CF9]" title="Print">
+          <span className="material-icons text-[20px]">print</span>
+        </button>
+      ),
+    },
+  ];
+
   return (
     <Layout>
-
       {/* ===== Section 3 - Cards ===== */}
       <div className="grid grid-cols-4 gap-6 mb-10">
         <Card title="Total Orders" value="152" />
@@ -55,46 +103,9 @@ export default function AdminPage1() {
 
       {/* ===== Section 4 - Table ===== */}
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-[#1F8CF9] text-white">
-            <tr>
-              <th className="p-4 text-left">S.No</th>
-              <th className="p-4 text-left">Print Status</th>
-              <th className="p-4 text-left">Bill No</th>
-              <th className="p-4 text-left">User ID</th>
-              <th className="p-4 text-left">Total Amount</th>
-              <th className="p-4 text-left">Details</th>
-              <th className="p-4 text-left">Action</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {data.map((item, index) => (
-              <tr key={item.id} className="border-t hover:bg-gray-50">
-                <td className="p-4">{index + 1}</td>
-
-                <td className="p-4">
-                  <span className={`inline-block w-3 h-3 rounded-full ${item.status? "bg-[#1F8CF9]" : "bg-green-500"}`}></span>
-                </td>
-                <td className="p-4">{item.bill}</td>
-                <td className="p-4">{item.user}</td>
-                <td className="p-4">₹{item.amount}</td>
-                <td className="p-4">
-                  <button onClick={() => navigate("/detailView")} className="text-[#1F8CF9] hover:underline">
-                    View
-                  </button>
-                </td>
-
-                <td className="p-4">
-                  <button className="text-gray-600 hover:text-[#1F8CF9]">
-                    🖨️
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <Tables<BillData> columns={columns} data={data} headerClassName="bg-[#1F8CF9] text-white"/>
       </div>
+
 
     </Layout>
   );

@@ -1,23 +1,8 @@
-// import Layout from "../components/Layout";
-
-// export default function OperatorPage2() {
-//   return (
-//     <Layout>
-//       <h1 className="text-3xl font-bold mb-6">Orders</h1>
-
-//       <div className="bg-white p-6 rounded-xl shadow">
-//         <p className="text-gray-600">
-//           Order #1024 - Wedding Invitation - In Progress
-//         </p>
-//       </div>
-//     </Layout>
-//   );
-// }
-
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import { useOperatorCart } from "../context/OperatorCartContext";
+import Tables, { Column } from "../components/Tables";
 
 type RowType = {
   service: string;
@@ -32,6 +17,43 @@ export default function OperatorPage2() {
   const { items, clearCart } = useOperatorCart();
 
   const [rows, setRows] = useState<RowType[]>([]);
+
+  const columns: Column<RowType>[] = [
+    {
+      header: "S.No",
+      accessor: "service",
+      render: (_row: RowType, index: number) => index + 1,
+    },
+    {
+      header: "Service",
+      accessor: "service",
+      render: (row: RowType) => `${row.service} (${row.pageType})`,
+    },
+    {
+      header: "No. of Pages",
+      accessor: "pages",
+      render: (row: RowType, index: number) => (
+        <input type="number" min="1" value={row.pages}
+          onChange={(e) => handlePageChange(index, e.target.value)}
+          className="w-24 border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        />
+      ),
+    },
+    {
+      header: "Cost per Page",
+      accessor: "costPerPage",
+      render: (row: RowType) => `₹${row.costPerPage}`,
+    },
+    {
+      header: "Total",
+      accessor: "total",
+      render: (row: RowType) => (
+        <span className="font-semibold">
+          ₹{row.total}
+        </span>
+      ),
+    },
+  ];
 
   // Hard refresh protection
   useEffect(() => {
@@ -114,75 +136,29 @@ export default function OperatorPage2() {
 
   return (
     <Layout>
-
-      <button onClick={handleBack} className="mb-6 text-blue-600 hover:underline">
-        ← Back
-      </button>
+      <div className="mb-4 justify-self-end print:hidden">
+        <button onClick={() => handleBack()} className="text-[#1F8CF9]">
+          <span className="material-icons">subdirectory_arrow_left</span>
+        </button>
+      </div>
 
       <h1 className="text-3xl font-bold mb-8">
         Service Details
       </h1>
 
       <div className="bg-white rounded-xl shadow overflow-hidden">
+        <Tables<RowType> columns={columns} data={rows} />
+      </div>
 
-        <table className="w-full">
-          <thead className="bg-gray-200 text-gray-700 text-sm">
-            <tr>
-              <th className="p-3 text-left">S.No</th>
-              <th className="p-3 text-left">Service</th>
-              <th className="p-3 text-left">No. of Pages</th>
-              <th className="p-3 text-left">Cost per Page</th>
-              <th className="p-3 text-left">Total</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {rows.map((row, index) => (
-              <tr key={index} className="border-t hover:bg-gray-50">
-                <td className="p-3">{index + 1}</td>
-
-                <td className="p-3">
-                  {row.service} ({row.pageType})
-                </td>
-
-                <td className="p-3">
-                  <input
-                    type="number"
-                    min="1"
-                    className="w-24 border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    value={row.pages || ""}
-                    onChange={(e) =>
-                      handlePageChange(index, e.target.value)
-                    }
-                  />
-                </td>
-
-                <td className="p-3">
-                  ₹{row.costPerPage}
-                </td>
-
-                <td className="p-3 font-semibold">
-                  ₹{row.total}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {/* Grand Total */}
-        <div className="flex justify-end p-6 border-t bg-gray-50">
-          <div className="text-lg font-bold">
-            Grand Total: ₹{grandTotal}
-          </div>
+      <div className="flex justify-end p-6 border-t bg-gray-50">
+        <div className="text-lg font-bold">
+          Grand Total: ₹{grandTotal}
         </div>
       </div>
 
       {/* Submit Button */}
       <div className="flex justify-end mt-6">
-        <button
-          onClick={handleSubmit}
-          className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition"
-        >
+        <button onClick={handleSubmit} className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition">
           Save & Submit
         </button>
       </div>
