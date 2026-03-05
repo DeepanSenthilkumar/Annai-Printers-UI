@@ -1,12 +1,15 @@
 import { ReactNode, useState, useEffect, useRef } from "react";
 import { useAuth } from "../auth/AuthContext";
 import { useOperatorCart } from "../context/OperatorCartContext";
+import AdminSidebar from "./AdminSidebar";
 
 export default function Layout({ children }: { children: ReactNode }) {
   const { logout } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { clearCart } = useOperatorCart();
+  const role = localStorage.getItem("role");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -37,7 +40,7 @@ export default function Layout({ children }: { children: ReactNode }) {
     <div className="min-h-screen flex flex-col bg-[#F5F8FC]">
       <header className="h-[70px] bg-white shadow-sm flex items-center justify-between px-10 print:hidden">
         
-        <h1 className="text-xl font-bold text-[#1F8CF9]">
+        <h1 onClick={() => setIsSidebarOpen((prev) => !prev)} className="text-xl font-bold text-[#1F8CF9] cursor-pointer select-none">
           Annai Printers
         </h1>
 
@@ -66,6 +69,14 @@ export default function Layout({ children }: { children: ReactNode }) {
           )}
         </div>
       </header>
+
+      {role === "Admin" && isSidebarOpen && (
+        <>
+          <div className="fixed inset-0 bg-white/60 backdrop-blur-sm z-10" onClick={() => setIsSidebarOpen(false)}></div>
+
+          <AdminSidebar onClose={() => setIsSidebarOpen(false)} />
+        </>
+      )}
 
       <main className="flex-1 px-10 py-8">
         {children}
