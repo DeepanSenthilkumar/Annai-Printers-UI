@@ -35,10 +35,10 @@ export const ApiService = {
       setTimeout(() => {
 
         const ADMIN_EMAIL = "admin@test.com";
-        const ADMIN_PASSWORD = "admin123";
+        const ADMIN_PASSWORD = "Admin@12345";
 
         const OPERATOR_EMAIL = "operator@test.com";
-        const OPERATOR_PASSWORD = "operator123";
+        const OPERATOR_PASSWORD = "Operator@123";
 
         if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
           resolve({
