@@ -105,9 +105,9 @@ export default function OperatorPage1() {
 
       {/* Dropdown Section */}
       <div className="bg-white p-6 rounded-xl shadow mb-8">
-        <div className="grid grid-cols-3 gap-6 items-end">
+        <div className="flex gap-6 items-end">
           {/* Service Dropdown */}
-          <div>
+          <div className="flex flex-col w-1/4">
             <label className="block text-sm font-medium mb-2">
               Service
             </label>
@@ -123,7 +123,7 @@ export default function OperatorPage1() {
           </div>
 
           {/* Page Type Dropdown */}
-          <div>
+          <div className="flex flex-col w-1/4">
             <label className="block text-sm font-medium mb-2">
               Page Type
             </label>
@@ -142,7 +142,7 @@ export default function OperatorPage1() {
           </div>
 
           {/* Add Button */}
-          <div>
+          <div className="w-auto">
             <button
               onClick={handleAdd}
               className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition"
