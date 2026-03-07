@@ -43,11 +43,19 @@ export default function Login() {
       return;
     }
 
+    const requestBody = {
+      "userId": email,
+      "password": password
+    }
+    debugger
+
     try {
-      const res = await ApiService.login(email, password);
+      localStorage.clear()
+      const res = await ApiService.login(requestBody) as any;
 
       if (!res.isAdded) {
         // show error
+        toaster.error('Invalid credential', "Error");
         return;
       }
 

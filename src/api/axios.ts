@@ -1,38 +1,15 @@
-// import axios from "axios";
-// import { ENV } from "../config/env";
-
-// const axiosInstance = axios.create({
-//   baseURL: ENV.API_BASE_URL,
-//   headers: {
-//     "Content-Type": "application/json",
-//   },
-// });
-
-// axiosInstance.interceptors.request.use(
-//   (config) => {
-//     const token = localStorage.getItem("token");
-//     if (token) {
-//       config.headers.Authorization = `Bearer ${token}`;
-//     }
-//     return config;
-//   },
-//   (error) => Promise.reject(error)
-// );
-
-// axiosInstance.interceptors.response.use(
-//   (response) => response,
-//   (error) => {
-//     if (error.response?.status === 401) {
-//       localStorage.clear();
-//       window.location.href = "/login";
-//     }
-//     return Promise.reject(error);
-//   }
-// );
-
-// export default axiosInstance;
-
 import axios from "axios";
+import { toaster } from "../components/toaster";
+
+const isTokenExpired = (token: string) => {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    const expiry = payload.exp * 1000; // convert to ms
+    return Date.now() > expiry;
+  } catch {
+    return true;
+  }
+};
 
 export const createAxiosInstance = (baseURL: string) => {
   const instance = axios.create({
@@ -42,19 +19,37 @@ export const createAxiosInstance = (baseURL: string) => {
     },
   });
 
+  // REQUEST INTERCEPTOR (token validation)
   instance.interceptors.request.use((config) => {
     const token = localStorage.getItem("token");
-    if (token) config.headers.Authorization = `Bearer ${token}`;
+
+    if (token) {
+      if (isTokenExpired(token)) {
+        localStorage.clear();
+
+        toaster.error("Session expired. Please login again.", "Session Expired");
+
+        setTimeout(() => {
+          window.dispatchEvent(new Event("session-expired"));
+        }, 500);
+
+        return Promise.reject("Token expired");
+      }
+
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
     return config;
   });
 
+  // RESPONSE INTERCEPTOR (only handle real unauthorized)
   instance.interceptors.response.use(
     (res) => res,
     (error) => {
-      if (error.response?.status === 401) {
-        localStorage.clear();
-        window.location.href = "/login";
+      if (error.response?.status === 403) {
+        toaster.error("You don't have permission", "Access Denied");
       }
+
       return Promise.reject(error);
     }
   );
