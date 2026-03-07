@@ -3,10 +3,16 @@ import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import { useOperatorCart } from "../context/OperatorCartContext";
 import Tables, { Column } from "../components/Tables";
+import Select from "react-select";
 
 type ServiceItem = {
   service: string;
   pageType: string;
+};
+
+type Option = {
+  value: string;
+  label: string;
 };
 
 export default function OperatorPage1() {
@@ -20,6 +26,16 @@ export default function OperatorPage1() {
   // const [items, setItems] = useState<ServiceItem[]>([]);
   const { items, setItems } = useOperatorCart();
   const [editIndex, setEditIndex] = useState<number | null>(null);
+
+  const serviceOptions: Option[] = services.map((s) => ({
+    value: s,
+    label: s,
+  }));
+
+  const pageOptions: Option[] = pageTypes.map((p) => ({
+    value: p,
+    label: p,
+  }));
 
   const columns: Column<ServiceItem>[] = [
     {
@@ -99,6 +115,14 @@ export default function OperatorPage1() {
     });
   };
 
+  const handleServiceChange = (option: Option | null) => {
+    setSelectedService(option ? option.value : "");
+  };
+
+  const handlePageChange = (option: Option | null) => {
+    setSelectedPageType(option ? option.value : "");
+  };
+
   return (
     <Layout>
       <h1 className="text-3xl font-bold mb-6">Operator Dashboard</h1>
@@ -111,15 +135,8 @@ export default function OperatorPage1() {
             <label className="block text-sm font-medium mb-2">
               Service
             </label>
-            <select value={selectedService} onChange={(e) => setSelectedService(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
-              <option value="">Select Service</option>
-              {services.map((service) => (
-                <option key={service} value={service}>
-                  {service}
-                </option>
-              ))}
-            </select>
+            <Select options={serviceOptions} value={serviceOptions.find((o) => o.value === selectedService) || null}
+             onChange={handleServiceChange} placeholder="Select Service" isClearable/>
           </div>
 
           {/* Page Type Dropdown */}
@@ -127,18 +144,8 @@ export default function OperatorPage1() {
             <label className="block text-sm font-medium mb-2">
               Page Type
             </label>
-            <select
-              value={selectedPageType}
-              onChange={(e) => setSelectedPageType(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            >
-              <option value="">Select Page Type</option>
-              {pageTypes.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
+            <Select options={pageOptions} value={pageOptions.find((o) => o.value === selectedPageType) || null}
+             onChange={handlePageChange} placeholder="Select Page Type" isClearable/>
           </div>
 
           {/* Add Button */}

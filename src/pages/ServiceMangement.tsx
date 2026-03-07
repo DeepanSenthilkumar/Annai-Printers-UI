@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import Layout from "../components/Layout";
 import { toaster } from "../components/toaster";
+import Tables, { Column } from "../components/Tables";
+import Select from "react-select";
 
 type Service = {
   id: number;
@@ -19,11 +21,33 @@ type Row = {
   cost: string;
 };
 
+type Option = {
+  value: number;
+  label: string;
+};
+
 const CONFIG_SERVICE_ID = 999;
 const CONFIG_PAGE_ID = 888;
 
 function ServiceMangement() {
+  const columns: Column<Row>[] = [
+  {header: "Service", accessor: "service", align: "center"},
+  {header: "Page Type", accessor: "pageType", align: "center"},
+  {header: "Cost", accessor: "cost", align: "center"},
+  {header: "Actions", accessor: "id", align: "center",
+    render: (_row: Row, index: number) => (
+      <div className="flex gap-2 justify-center">
+        <button className="flex items-center p-1 text-blue-500 text-sm hover:text-white hover:bg-blue-500 rounded-md" onClick={() => handleEdit(index, tableData[index])}>
+          <span className="material-icons text-[16px]">edit</span>
+        </button>
 
+        <button className="flex items-center p-1 text-red-500 text-sm hover:text-white hover:bg-red-500 rounded-md" onClick={() => handleDelete(index)}>
+          <span className="material-icons text-[16px]">delete</span>
+        </button>
+      </div>
+    )
+  }
+];
   const [services, setServices] = useState<Service[]>([]);
   const [pageTypes, setPageTypes] = useState<PageType[]>([]);
 
@@ -61,6 +85,16 @@ function ServiceMangement() {
     setPageTypes(pageList);
 
   }, []);
+
+  const serviceOptions: Option[] = services.map(s => ({
+    value: s.id,
+    label: s.name
+  }));
+
+  const pageOptions: Option[] = pageTypes.map(p => ({
+    value: p.id,
+    label: p.name
+  }));
 
   function validate() {
     let newErrors: any = {};
@@ -149,6 +183,35 @@ function ServiceMangement() {
     resetForm();
   }
 
+  const handleServiceChange = (option: Option | null) => {
+    if (!option) {
+      setServiceValue("");
+      return;
+    }
+
+    if (option.value === CONFIG_SERVICE_ID) {
+      setServiceInputMode(true);
+      setServiceValue("");
+    } else {
+      setServiceValue(option.label);
+    }
+
+  };
+
+  const handlePageChange = (option: Option | null) => {
+    if (!option) {
+      setPageValue("");
+      return;
+    }
+
+    if (option.value === CONFIG_PAGE_ID) {
+      setPageInputMode(true);
+      setPageValue("");
+    } else {
+      setPageValue(option.label);
+    }
+  };
+
   return (
     <Layout>
       <div className="bg-white p-6 rounded shadow">
@@ -157,33 +220,13 @@ function ServiceMangement() {
         </h2>
 
         <div className="flex gap-4 items-end">
-
-          {/* SERVICE */}
-
           <div className="flex flex-col w-1/4">
             <label className="block text-sm font-medium mb-2">Service</label>
             <div>
               {!serviceInputMode ? (
 
-                <select className="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-400" value={serviceValue} disabled={editIndex != null}
-                  onChange={(e) => {
-                    const selected = services.find(s => s.name === e.target.value);
-
-                    if (selected?.id === CONFIG_SERVICE_ID) {
-                      setServiceInputMode(true);
-                      setServiceValue("");
-                    } else {
-                      setServiceValue(e.target.value);
-                    }
-                  }}
-                >
-                  <option value="">Select Service</option>
-                  {services.map(s => (
-                    <option key={s.id} value={s.name}>
-                      {s.name}
-                    </option>
-                  ))}
-                </select>
+                <Select options={serviceOptions} value={serviceOptions.find(o => o.label === serviceValue) || null} onChange={handleServiceChange} 
+                  isDisabled={editIndex !== null} isClearable placeholder="Select Service"/>
               ) : (
                 <div className="relative">
                   <input className="border p-2 w-full pr-8 focus:outline-none focus:ring-2 border-gray-300 rounded-md" value={serviceValue} onChange={(e) => setServiceValue(e.target.value)}/>
@@ -198,32 +241,12 @@ function ServiceMangement() {
             </div>
           </div>
 
-          {/* PAGE TYPE */}
-
           <div className="flex flex-col w-1/4">
             <label className="block text-sm font-medium mb-2">Page Type</label>
             <div>
               {!pageInputMode ? (
-                <select className="border p-2 w-full border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400" value={pageValue} disabled={editIndex != null}
-                  onChange={(e) => {
-                    const selected = pageTypes.find(s => s.name === e.target.value);
-
-                    if (selected?.id === CONFIG_PAGE_ID) {
-                      setPageInputMode(true);
-                      setPageValue("");
-                    } else {
-                      setPageValue(e.target.value);
-                    }
-                  }}
-                >
-                  <option value="">Select Page</option>
-
-                  {pageTypes.map(p => (
-                    <option key={p.id} value={p.name}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
+                <Select options={pageOptions} value={pageOptions.find(o => o.label === pageValue) || null} onChange={handlePageChange}
+                 isDisabled={editIndex !== null} isClearable placeholder="Select Page Type"/>
               ) : (
                 <div className="relative">
                   <input className="border p-2 w-full focus:outline-none focus:ring-2" value={pageValue} onChange={(e) => setPageValue(e.target.value)}/>
@@ -238,7 +261,6 @@ function ServiceMangement() {
             </div>
           </div>
 
-          {/* COST */}
           <div className="flex flex-col w-1/4">
             <label className="block text-sm font-medium mb-2">Cost of page</label>
             <input className="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2" value={costValue} placeholder="Enter cost of page"
@@ -252,8 +274,6 @@ function ServiceMangement() {
 
             {/* {errors.cost && (<p className="text-red-500 text-sm">{errors.cost}</p>)} */}
           </div>
-
-          {/* BUTTONS */}
 
           <div className="flex gap-2 w-auto">
             {editIndex === null ? (
@@ -274,38 +294,10 @@ function ServiceMangement() {
           </div>
         </div>
 
-        {/* TABLE */}
-
         {tableData.length > 0 && (
-          <table className="w-full mt-8 border">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="p-2 border">Service</th>
-                <th className="p-2 border">Page Type</th>
-                <th className="p-2 border">Cost</th>
-                <th className="p-2 border">Actions</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {tableData.map((row, i) => (
-                <tr key={row.id}>
-                  <td className="border p-2 text-center">{row.service}</td>
-                  <td className="border p-2 text-center">{row.pageType}</td>
-                  <td className="border p-2 text-center">{row.cost}</td>
-                  <td className="border p-2 flex gap-2 justify-center">
-                    <button className="flex items-center p-1 text-blue-500 text-sm hover:text-white hover:bg-blue-500 rounded-md" onClick={() => handleEdit(i, row)}>
-                      <span className="material-icons text-[16px]">edit</span>
-                    </button>
-
-                    <button className="flex items-center p-1 text-red-500 text-sm hover:text-white hover:bg-red-500 rounded-md" onClick={() => handleDelete(i)}>
-                      <span className="material-icons text-[16px]">delete</span>
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="mt-8">
+            <Tables<Row> columns={columns} data={tableData}/>
+          </div>
         )}
       </div>
     </Layout>
