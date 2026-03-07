@@ -9,6 +9,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { clearCart } = useOperatorCart();
   const role = localStorage.getItem("role");
+  const userName = localStorage.getItem("userName") || "";
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Close dropdown when clicking outside
@@ -47,11 +48,11 @@ export default function Layout({ children }: { children: ReactNode }) {
         <div className="relative" ref={dropdownRef}>
           <div onClick={() => setShowMenu((prev) => !prev)} className="flex items-center gap-2 cursor-pointer select-none" >
             <div className="w-9 h-9 bg-[#1F8CF9] rounded-full flex items-center justify-center text-white font-semibold">
-              A
+              {userName ? userName.charAt(0).toUpperCase() : "U"}
             </div>
 
             <span className="text-[#16181D] font-medium">
-              Admin01
+              {userName}
             </span>
 
             <svg className={`w-4 h-4 transition-transform ${showMenu ? "rotate-180" : "" }`}

@@ -59,7 +59,7 @@ export default function Login() {
         return;
       }
 
-      login(res.token, res.role);
+      login(res.token, res.role, res.username);
       toaster.success('Login Success', "Success");
 
       if (res.role === "Admin") {
@@ -153,10 +153,10 @@ export default function Login() {
               <div className="flex flex-col gap-2">
                 <label htmlFor="">User Id</label>
                 <div className="relative"> {/* CHANGED: relative wrapper */}
-
                   <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-[#575E6B] text-[16px]">
                     person
                   </span>
+
                   <input type="text" autoComplete="username" id="userId" name="userId" placeholder="Enter your Id"
                     value={email} onChange={(e) => {
                       if (!touched.email) {
