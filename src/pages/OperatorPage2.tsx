@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import { useOperatorCart } from "../context/OperatorCartContext";
 import Tables, { Column } from "../components/Tables";
+import { toaster } from "../components/toaster";
+import { ApiService } from "../api/services";
 
 type RowType = {
   service: string;
@@ -14,39 +16,22 @@ type RowType = {
 
 export default function OperatorPage2() {
   const navigate = useNavigate();
-  const { items, clearCart } = useOperatorCart();
+  const { items, services, clearCart } = useOperatorCart();
 
   const [rows, setRows] = useState<RowType[]>([]);
 
   const columns: Column<RowType>[] = [
-    {
-      header: "S.No",
-      accessor: "service",
-      render: (_row: RowType, index: number) => index + 1,
-    },
-    {
-      header: "Service",
-      accessor: "service",
-      render: (row: RowType) => `${row.service} (${row.pageType})`,
-    },
-    {
-      header: "No. of Pages",
-      accessor: "pages",
+    {header: "S.No", accessor: "service", render: (_row: RowType, index: number) => index + 1,},
+    {header: "Service", accessor: "service", render: (row: RowType) => `${row.service} (${row.pageType})`,},
+    {header: "No. of Pages", accessor: "pages",
       render: (row: RowType, index: number) => (
-        <input type="number" min="1" value={row.pages}
-          onChange={(e) => handlePageChange(index, e.target.value)}
-          className="w-24 border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
-        />
+        <input type="number" min="1" value={row.pages} onChange={(e) => handlePageChange(index, e.target.value)}
+          className="w-24 border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400"/>
       ),
     },
-    {
-      header: "Cost per Page",
-      accessor: "costPerPage",
-      render: (row: RowType) => `₹${row.costPerPage}`,
+    {header: "Cost per Page", accessor: "costPerPage", render: (row: RowType) => `₹${row.costPerPage}`,
     },
-    {
-      header: "Total",
-      accessor: "total",
+    {header: "Total", accessor: "total",
       render: (row: RowType) => (
         <span className="font-semibold">
           ₹{row.total}
@@ -63,41 +48,25 @@ export default function OperatorPage2() {
     }
   }, []);
 
-  // Hard coded pricing list
-  const priceList = [
-    { service: "Xerox", pageType: "A4", price: 2 },
-    { service: "Xerox", pageType: "A3", price: 5 },
-    { service: "Xerox", pageType: "A5", price: 5 },
-    { service: "Print", pageType: "A4", price: 4 },
-    { service: "Print", pageType: "A3", price: 8 },
-    { service: "Print", pageType: "A5", price: 8 },
-    { service: "Invitation", pageType: "Photo", price: 15 },
-  ];
-
-  // Initialize rows with pricing
   useEffect(() => {
     const mappedRows: RowType[] = items.map((item) => {
-      const match = priceList.find(
-        (p) =>
-          p.service === item.service &&
-          p.pageType === item.pageType
-      );
+
+      const match = services.find((s) => s.serviceName === item.service && s.pageType === item.pageType);
 
       return {
         service: item.service,
         pageType: item.pageType,
         pages: 0,
-        costPerPage: match ? match.price : 0,
+        costPerPage: match ? match.costPerPage : 0,
         total: 0,
       };
     });
 
     setRows(mappedRows);
-  }, [items]);
+  }, [items, services]);
 
   const handlePageChange = (index: number, value: string) => {
     const num = Number(value);
-
     const updated = [...rows];
     updated[index].pages = num;
     updated[index].total = num * updated[index].costPerPage;
@@ -109,25 +78,56 @@ export default function OperatorPage2() {
     return rows.reduce((acc, row) => acc + row.total, 0);
   }, [rows]);
 
-  const handleSubmit = () => {
-    const invalid = rows.some(
-      (row) => !row.pages || row.pages <= 0
-    );
+  const handleSubmit = async () => {
+    debugger
+    const invalid = rows.some((row) => !row.pages || row.pages <= 0);
 
     if (invalid) {
-      alert("Please fill all No. of Pages fields with valid values.");
+      toaster.warning("Please fill all No of Pages fields with valid values", "Warning");
       return;
     }
 
-    const payload = {
-      date: new Date(),
-      items: rows,
+    const today = new Date();
+    const localDate = today.toLocaleDateString("en-CA"); 
+
+    const billItems = rows.map((row) => {
+      const match = services.find((s) => s.serviceName === row.service && s.pageType === row.pageType);
+
+      return {
+        serviceId: match?.serviceId || "",
+        serviceName: row.service,
+        pageType: row.pageType,
+        pageTypeId: match?.pageTypeId || "",
+        costPerPage: row.costPerPage,
+        noOfPage: row.pages,
+        total: row.total,
+      };
+    });
+
+    const requestBody = {
+      userId: localStorage.getItem('userName'), // replace later with logged user
+      billTotal: grandTotal,
+      date: localDate,
+      printStatus: false,
+      items: billItems,
     };
 
-    console.log("Final Billing Payload:", payload);
+    try {
+      const response = await ApiService.submitBill(requestBody);
 
-    clearCart();
-    navigate("/operator");
+      if (response?.isAdded) {
+        toaster.success(response.message, "Success");
+        console.log("Bill saved:", requestBody);
+        clearCart();
+        navigate("/operator");
+      }
+
+    } catch (error) {
+      console.error("Bill submit failed", error);
+    }
+
+    // clearCart();
+    // navigate("/operator");
   };
 
   const handleBack = () => {
@@ -156,7 +156,6 @@ export default function OperatorPage2() {
         </div>
       </div>
 
-      {/* Submit Button */}
       <div className="flex justify-end mt-6">
         <button onClick={handleSubmit} className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition">
           Save & Submit

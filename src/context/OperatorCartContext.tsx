@@ -19,6 +19,7 @@ type OperatorCartContextType = {
   services: ServiceConfig[];
   setServices: React.Dispatch<React.SetStateAction<ServiceConfig[]>>;
   clearCart: () => void;
+  clearServices: () => void;
   clearAll: () => void;
 };
 
@@ -39,8 +40,12 @@ export const OperatorCartProvider = ({ children }: { children: ReactNode }) => {
     setServices([]);
   };
 
+  const clearServices = () => {
+    setServices([]);
+  };
+
   return (
-    <OperatorCartContext.Provider value={{ items, setItems, services, setServices, clearCart, clearAll }}>
+    <OperatorCartContext.Provider value={{ items, setItems, services, setServices, clearServices, clearCart, clearAll }}>
       {children}
     </OperatorCartContext.Provider>
   );

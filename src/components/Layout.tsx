@@ -7,7 +7,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   const { logout } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const { clearCart } = useOperatorCart();
+  const { clearCart, clearAll, clearServices } = useOperatorCart();
   const role = localStorage.getItem("role");
   const userName = localStorage.getItem("userName") || "";
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -33,6 +33,8 @@ export default function Layout({ children }: { children: ReactNode }) {
     debugger
     if( localStorage.getItem('role') === 'Operator'){
       clearCart()
+      clearServices()
+      clearAll()
     }
     logout()
   }
