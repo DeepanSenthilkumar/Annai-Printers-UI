@@ -3,6 +3,7 @@ import Layout from "../components/Layout";
 import { toaster } from "../components/toaster";
 import Tables, { Column } from "../components/Tables";
 import Select from "react-select";
+import { ApiService } from "../api/services";
 
 type Service = {
   id: number;
@@ -17,7 +18,9 @@ type PageType = {
 type Row = {
   id: number;
   service: string;
+  serviceId: string;
   pageType: string;
+  pageId: string;
   cost: string;
 };
 
@@ -26,28 +29,41 @@ type Option = {
   label: string;
 };
 
-const CONFIG_SERVICE_ID = 999;
-const CONFIG_PAGE_ID = 888;
+type ServiceAPI = {
+  _id: string;
+  serviceId: string;
+  pageTypeId: string;
+  serviceName: string;
+  pageType: string;
+  costPerPage: number;
+};
+
+// const CONFIG_SERVICE_ID = 999;
+// const CONFIG_PAGE_ID = 888;
+
+const OTHER_ID = 7;
 
 function ServiceMangement() {
   const columns: Column<Row>[] = [
-  {header: "Service", accessor: "service", align: "center"},
-  {header: "Page Type", accessor: "pageType", align: "center"},
-  {header: "Cost", accessor: "cost", align: "center"},
-  {header: "Actions", accessor: "id", align: "center",
-    render: (_row: Row, index: number) => (
-      <div className="flex gap-2 justify-center">
-        <button className="flex items-center p-1 text-blue-500 text-sm hover:text-white hover:bg-blue-500 rounded-md" onClick={() => handleEdit(index, tableData[index])}>
-          <span className="material-icons text-[16px]">edit</span>
-        </button>
+    {header: "Service", accessor: "service", align: "center"},
+    {header: "Page Type", accessor: "pageType", align: "center"},
+    {header: "Cost", accessor: "cost", align: "center"},
+    {header: "Actions", accessor: "id", align: "center",
+      render: (_row: Row, index: number) => (
+        <div className="flex gap-2 justify-center">
+          <button className="flex items-center p-1 text-blue-500 text-sm hover:text-white hover:bg-blue-500 rounded-md" onClick={() => handleEdit(index, tableData[index])}>
+            <span className="material-icons text-[16px]">edit</span>
+          </button>
 
-        <button className="flex items-center p-1 text-red-500 text-sm hover:text-white hover:bg-red-500 rounded-md" onClick={() => handleDelete(index)}>
-          <span className="material-icons text-[16px]">delete</span>
-        </button>
-      </div>
-    )
-  }
-];
+          <button className="flex items-center p-1 text-red-500 text-sm hover:text-white hover:bg-red-500 rounded-md" onClick={() => handleDelete(index)}>
+            <span className="material-icons text-[16px]">delete</span>
+          </button>
+        </div>
+      )
+    }
+  ];
+
+  const [apiServices, setApiServices] = useState<ServiceAPI[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [pageTypes, setPageTypes] = useState<PageType[]>([]);
 
@@ -69,22 +85,68 @@ function ServiceMangement() {
 
     // API call should be here
 
-    const serviceList = [
-      { id: 1, name: "Printing" },
-      { id: 2, name: "Binding" },
-      { id: CONFIG_SERVICE_ID, name: "Other" },
-    ];
+    // const serviceList = [
+    //   { id: 1, name: "Printing" },
+    //   { id: 2, name: "Binding" },
+    //   { id: CONFIG_SERVICE_ID, name: "Other" },
+    // ];
 
-    const pageList = [
-      { id: 1, name: "A4" },
-      { id: 2, name: "A3" },
-      { id: CONFIG_PAGE_ID, name: "Custom" },
-    ];
+    // const pageList = [
+    //   { id: 1, name: "A4" },
+    //   { id: 2, name: "A3" },
+    //   { id: CONFIG_PAGE_ID, name: "Custom" },
+    // ];
 
-    setServices(serviceList);
-    setPageTypes(pageList);
+    // setServices(serviceList);
+    // setPageTypes(pageList);
+
+    getService();
 
   }, []);
+
+  const getService = async () => {
+    debugger
+    try {
+
+      const res = await ApiService.getAllService();
+
+      if(res?.isAdded){
+        const data:ServiceAPI[] = res.services || [];
+        setApiServices(data);
+
+        if(data.length === 0){
+          setTableData([]);
+          setServices([{id:OTHER_ID,name:"Other"}]);
+          setPageTypes([{id:OTHER_ID,name:"Other"}]);
+          return;
+        }
+
+        const tableRows:Row[] = data.map((s,index)=>({
+          id:index+1,
+          service:s.serviceName,
+          serviceId:s.serviceId,
+          pageType:s.pageType,
+          pageId: s.pageTypeId,
+          cost:String(s.costPerPage)
+        }));
+
+        setTableData(tableRows);
+
+        const uniqueServices = [...new Set(data.map(s=>s.serviceName))];
+
+        const serviceOptions = uniqueServices.map((name,i)=>({
+          id:i+1,
+          name
+        }));
+
+        serviceOptions.push({id:OTHER_ID,name:"Other"});
+        setServices(serviceOptions);
+      }
+
+    } catch (error) {
+      toaster.error("Failed to fetch services","Error");
+    }
+  }
 
   const serviceOptions: Option[] = services.map(s => ({
     value: s.id,
@@ -127,7 +189,7 @@ function ServiceMangement() {
     // setErrors({});
   }
 
-  const addRow = () => {
+  const addRow = async () => {
     if (!validate()) {
       toaster.error('Please fill all details', "Error");
       return;
@@ -138,20 +200,28 @@ function ServiceMangement() {
       return;
     }
 
-    const newRow: Row = {
-      id: Date.now(),
-      service: serviceValue,
+    const payload = {
+      serviceName: serviceValue,
       pageType: pageValue,
-      cost: costValue,
+      costPerPage: Number(costValue)
     };
-    toaster.success('Service added successfully', "Success");
-    setTableData([...tableData, newRow]);
-    resetForm();
+
+    try{
+      const response = await ApiService.createNewService(payload);
+      if (response.isAdded) {
+        toaster.success('Service added successfully', "Success");
+        getService();
+        resetForm();
+      }
+    } catch (err) {
+      console.log(err)
+    }
+    // setTableData([...tableData, newRow]);
   }
 
   const handleEdit = (index: number, row: any) => {
+    debugger
     // const row = tableData[index];
-
     setServiceValue(row.service);
     setPageValue(row.pageType);
     setCostValue(row.cost);
@@ -162,25 +232,60 @@ function ServiceMangement() {
     // setPageInputMode(true);
 
     setEditIndex(index);
+    const filtered = apiServices.filter(s => s.serviceName === row.service);
+
+    const uniquePages = [...new Set(filtered.map(f => f.pageType))];
+
+    const pages = uniquePages.map((p, i) => ({
+      id: i + 1,
+      name: p
+    }));
+
+    pages.push({ id: OTHER_ID, name: "Other" });
+
+    setPageTypes(pages);
   }
 
-  const handleUpdate = () => {
+  const handleUpdate = async () => {
+    debugger
     if (!validate()) return;
 
     if (editIndex === null) return;
+    debugger
+    const pageTypeId = tableData[editIndex].pageId
 
-    const updated = [...tableData];
-    updated[editIndex].cost = costValue;
-    setTableData(updated);
-    toaster.success("Updated successfully", "Success");
-    resetForm();
+    const requestBody = {
+      "costPerPage": Number(costValue)
+    }
+
+    console.log(requestBody)
+
+    try {
+      const response = await ApiService.updateServiceDetails(pageTypeId, requestBody);
+      
+      if(response.isAdded) {
+        toaster.success("Updated successfully", "Success");
+        getService();
+        resetForm();
+      }
+    } catch (err) {
+      console.log('err', err);
+    }
   }
 
-  const handleDelete = (index: number) => {
-    const updated = tableData.filter((_, i) => i !== index);
-    setTableData(updated);
-    toaster.success('Service deleted', "Success");
-    resetForm();
+  const handleDelete = async (index: number) => {
+    const pageTypeId = tableData[index].pageId
+    try{
+      const response = await ApiService.deleteService(pageTypeId);
+
+      if(response.isAdded) {
+        getService();
+        resetForm();
+        toaster.success('Service deleted', "Success");
+      }
+    } catch (err) {
+      toaster.error("Can't delete the service. Please try again", "Error");
+    }
   }
 
   const handleServiceChange = (option: Option | null) => {
@@ -189,13 +294,19 @@ function ServiceMangement() {
       return;
     }
 
-    if (option.value === CONFIG_SERVICE_ID) {
+    if (option.value === OTHER_ID) {
       setServiceInputMode(true);
       setServiceValue("");
+      setPageTypes([{id:OTHER_ID,name:"Other"}]);
     } else {
-      setServiceValue(option.label);
+      const selectedService = option.label;
+      setServiceValue(selectedService);
+      const filtered = apiServices.filter(s=>s.serviceName===selectedService);
+      const uniquePages = [...new Set(filtered.map(f=>f.pageType))];
+      const pages = uniquePages.map((p,i)=>({id:i+1,name:p}));
+      pages.push({id:OTHER_ID,name:"Other"});
+      setPageTypes(pages);
     }
-
   };
 
   const handlePageChange = (option: Option | null) => {
@@ -204,7 +315,7 @@ function ServiceMangement() {
       return;
     }
 
-    if (option.value === CONFIG_PAGE_ID) {
+    if (option.value === OTHER_ID) {
       setPageInputMode(true);
       setPageValue("");
     } else {

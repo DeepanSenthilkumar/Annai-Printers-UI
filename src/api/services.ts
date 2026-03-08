@@ -102,8 +102,89 @@ export const ApiService = {
   
   getAllBill: async (requestBody: any) => {
     try{
-      const res = await baseUrl.get(`/api/bills`, requestBody);
+      const res = await baseUrl.get(`/api/bills`, {params: { ...requestBody, _t: Date.now()}});
       return res.data;
+    } catch (error: any) {
+      if (error.response && error.response.data) {
+        return error.response.data;
+      }
+
+      return {
+        isAdded: false,
+        message: "Something went wrong",
+      };
+    }
+  },
+
+  createNewService: async (requestBody: any) => {
+    try{
+      const res = await baseUrl.post(`/api/services`, requestBody);
+      return res.data;
+    } catch (error: any) {
+      if (error.response && error.response.data) {
+        return error.response.data;
+      }
+
+      return {
+        isAdded: false,
+        message: "Something went wrong",
+      };
+    }
+  },
+
+  updateServiceDetails: async (pageId: any, requestBody: any) => {
+    try{
+      const res = await baseUrl.put(`/api/services/${pageId}`, requestBody);
+      return res.data;
+    } catch (error: any) {
+      if (error.response && error.response.data) {
+        return error.response.data;
+      }
+
+      return {
+        isAdded: false,
+        message: "Something went wrong",
+      };
+    }
+  },
+
+  deleteService: async (pageId: any) => {
+    try{
+      const res = await baseUrl.delete(`/api/services/${pageId}`);
+      return res.data;
+    } catch (error: any) {
+      if (error.response && error.response.data) {
+        return error.response.data;
+      }
+
+      return {
+        isAdded: false,
+        message: "Something went wrong",
+      };
+    }
+  },
+
+  exportBills: async () => {
+    try {
+      const response = await baseUrl.get(`/api/bills/export`);
+      return response.data;
+    } catch (error: any) {
+      if (error.response && error.response.data) {
+        return error.response.data;
+      }
+
+      return {
+        isAdded: false,
+        message: "Something went wrong",
+      };
+    }
+  },
+  
+  clearBills: async () => {
+    debugger
+    try {
+      const response = await baseUrl.delete(`/api/bills/clear-all`);
+      return response.data;
     } catch (error: any) {
       if (error.response && error.response.data) {
         return error.response.data;

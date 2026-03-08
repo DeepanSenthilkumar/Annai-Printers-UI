@@ -1,9 +1,10 @@
 import Layout from "../components/Layout";
 import { useNavigate  } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Tables, { Column } from "../components/Tables";
 import { ApiService } from "../api/services";
 import { useAdminBills } from "../context/AdminBillsContext";
+import { toaster } from "../components/toaster";
 
 type BillItem = {
   serviceId: string;
@@ -28,23 +29,37 @@ type BillData = {
 export default function AdminPage1() {
   
   const navigate = useNavigate();
+  const initialLoad = useRef(false);
   const { bills, setBills, summary, setSummary, pageNumber, setPageNumber, totalPages, setTotalPages} = useAdminBills();
   const [search, setSearch] = useState("");
   const pageSize = 10;
   const groupSize = 5;
 
+  useEffect(() => {
+    debugger
+    if (!initialLoad.current) {
+      initialLoad.current = true;
+      if (bills.length === 0) {
+        getAllBill(1);
+      }
+    }
+  }, []);
+
   const getAllBill = async (page = 1, searchText = "") => {
+    debugger
     try {
       const requestBody = {
         pageNumber: page,
-        pageSize: pageSize,
+        pageSize: 10,
         userId: "",
         billNumber: searchText,
       };
-
+      console.log(requestBody);
+      setBills([])
       const response = await ApiService.getAllBill(requestBody);
 
       if (response?.isAdded) {
+        console.log(response)
         setBills(response.bills);
         setSummary(response.todaySummary);
         setPageNumber(response.pagination.currentPage);
@@ -54,13 +69,6 @@ export default function AdminPage1() {
       console.error("Fetch bill failed", error);
     }
   };
-
-  useEffect(() => {
-    debugger
-    if (bills.length === 0) {
-      getAllBill(1);
-    }
-  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -86,6 +94,7 @@ export default function AdminPage1() {
   for (let i = currentGroupStart; i <= currentGroupEnd; i++) {pages.push(i);}
 
   const goToPage = (page: number) => {
+    debugger
     setPageNumber(page);
     getAllBill(page, search);
   };
@@ -99,6 +108,7 @@ export default function AdminPage1() {
   };
 
   const goNextGroup = () => {
+    debugger
     if (currentGroupEnd < totalPages) {
       const page = currentGroupEnd + 1;
       setPageNumber(page);
@@ -123,14 +133,73 @@ export default function AdminPage1() {
     },
   ];
 
+  const handleExportBills = async () => {
+    try {
+      const response = await ApiService.exportBills();
+
+      if (!response?.isAdded) {
+        // alert(response.message);
+        toaster.error("Export Failed", "Error");
+        return;
+      }
+
+      // decode base64
+      const byteCharacters = atob(response.file);
+      const byteNumbers = new Array(byteCharacters.length).fill(0).map((_, i) => byteCharacters.charCodeAt(i));
+
+      const byteArray = new Uint8Array(byteNumbers);
+
+      const blob = new Blob([byteArray], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+
+      // local date for filename
+      const today = new Date();
+      const formattedDate = today.toLocaleDateString("en-GB").replace(/\//g, "-"); // dd-mm-yyyy
+      const fileName = `Annai Printer Report ${formattedDate}.xlsx`;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      a.click();
+
+      URL.revokeObjectURL(url);
+
+      // alert(response.message);
+      // toaster.success(response.message, "Success");
+      clearAllBills()
+
+
+    } catch (error) {
+      console.error(error);
+      // alert("Export failed. Please try again.");
+      toaster.error("Export failed. Please try again", "Error");
+    }
+  };
+
+  const clearAllBills = async() => {
+    debugger
+    try{
+      const response = await ApiService.clearBills();
+      debugger
+      if (response.isAdded) {
+        toaster.success("Export successfull", "Success");
+        getAllBill();
+      }
+    } catch (err) {
+      console.log("Something went wrong. Please try again", "Error");
+    }
+  }
+
   return (
     <Layout>
       {/* ===== Section 3 - Cards ===== */}
       <div className="grid grid-cols-4 gap-6 mb-10">
         <Card title="Total Orders" value={summary ? summary.totalBillsToday.toString() : "0"} />
         <Card title="Revenue" value={summary ? `₹${summary.totalRevenueToday}` : "₹0"} />
-        <Card title="Completed" value={summary ? summary.totalPrinted.toString() : "0"} />
-        <Card title="Pending" value={summary ? summary.totalYetToPrint.toString() : "0"} />
+        {/* <Card title="Completed" value={summary ? summary.totalPrinted.toString() : "0"} /> */}
+        <Card title="Completed" value={summary ? summary.totalYetToPrint.toString() : "0"} />
+        {/* <Card title="Pending" value={summary ? summary.totalYetToPrint.toString() : "0"} /> */}
       </div>
 
       {/* ===== Section 5 - Search + Download ===== */}
@@ -146,7 +215,7 @@ export default function AdminPage1() {
           </button>
         </div>
 
-        <button className="px-5 h-[42px] gap-2 flex justify-center items-center bg-green-600 text-white rounded-md hover:bg-green-700">
+        <button onClick={handleExportBills} className="px-5 h-[42px] gap-2 flex justify-center items-center bg-green-600 text-white rounded-md hover:bg-green-700">
           <span className="material-icons text-[18px]">download</span>
           Download
         </button>
