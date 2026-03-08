@@ -28,7 +28,7 @@ export default function AdminPage2() {
 
       {/* Back Button */}
       <div className="mb-4 justify-self-end print:hidden">
-        <button onClick={() => navigate(-1)} className="text-[#1F8CF9]">
+        <button onClick={() => navigate("/admin", { state: { fromDetail: true }})} className="text-[#1F8CF9]">
           <span className="material-icons">subdirectory_arrow_left</span>
         </button>
       </div>
@@ -127,3 +127,202 @@ export default function AdminPage2() {
     </Layout>
   );
 }
+
+
+// import Layout from "../components/Layout";
+// import { useLocation, useNavigate } from "react-router-dom";
+// import { useEffect } from "react";
+
+// type BillItem = {
+//   serviceId: string;
+//   serviceName: string;
+//   pageType: string;
+//   pageTypeId: string;
+//   costPerPage: number;
+//   noOfPage: number;
+//   total: number;
+// };
+
+// type BillData = {
+//   _id: string;
+//   billNumber: string;
+//   userId: string;
+//   billTotal: number;
+//   date: string;
+//   printStatus: boolean;
+//   items: BillItem[];
+//   autoPrint?: boolean;
+// };
+
+// export default function AdminPage2() {
+//   const location = useLocation();
+//   const navigate = useNavigate();
+
+//   const bill: BillData = location.state;
+
+//   const services = bill?.items || [];
+
+//   // =============================
+//   // AUTO PRINT
+//   // =============================
+
+//   useEffect(() => {
+//     if (bill?.autoPrint) {
+//       setTimeout(() => window.print(), 300);
+//     }
+//   }, [bill]);
+
+//   // =============================
+//   // TOTALS
+//   // =============================
+
+//   const totalPages = services.reduce((sum, item) => sum + item.noOfPage, 0);
+//   const totalAmount = services.reduce((sum, item) => sum + item.total, 0);
+
+//   // =============================
+//   // PRINT
+//   // =============================
+
+//   const handlePrint = () => {
+//     window.print();
+//   };
+
+//   if (!bill) {
+//     return (
+//       <Layout>
+//         <div className="p-10 text-center text-red-500">
+//           No bill data found
+//         </div>
+//       </Layout>
+//     );
+//   }
+
+//   return (
+//     <Layout>
+//       <div className="bg-white p-10 rounded-xl shadow-sm">
+
+//         {/* HEADER */}
+
+//         <div className="flex justify-between items-center mb-8">
+
+//           <div>
+//             <h2 className="text-xl font-bold text-[#16181D]">
+//               Bill Details
+//             </h2>
+
+//             <p className="text-[#575E6B] mt-2">
+//               Bill No: <span className="font-medium">{bill.billNumber}</span>
+//             </p>
+
+//             <p className="text-[#575E6B]">
+//               Date:{" "}
+//               <span className="font-medium">
+//                 {new Date(bill.date).toLocaleDateString()}
+//               </span>
+//             </p>
+
+//             <p className="text-[#575E6B]">
+//               User: <span className="font-medium">{bill.userId}</span>
+//             </p>
+//           </div>
+
+//           <button
+//             onClick={handlePrint}
+//             className="bg-[#1F8CF9] text-white px-6 py-2 rounded-md hover:bg-[#0f6fd1]"
+//           >
+//             Print
+//           </button>
+//         </div>
+
+//         {/* TABLE */}
+
+//         <div className="overflow-x-auto">
+
+//           <table className="w-full border-collapse">
+
+//             <thead>
+//               <tr className="bg-[#1F8CF9] text-white">
+
+//                 <th className="p-3 text-left">S.No</th>
+
+//                 <th className="p-3 text-left">Service</th>
+
+//                 <th className="p-3 text-left">Page Type</th>
+
+//                 <th className="p-3 text-left">Pages</th>
+
+//                 <th className="p-3 text-left">Cost/Page</th>
+
+//                 <th className="p-3 text-left">Total</th>
+
+//               </tr>
+//             </thead>
+
+//             <tbody>
+
+//               {services.map((item, index) => (
+//                 <tr
+//                   key={index}
+//                   className="border-b border-[#E0E2E6]"
+//                 >
+
+//                   <td className="p-3">{index + 1}</td>
+
+//                   <td className="p-3">{item.serviceName}</td>
+
+//                   <td className="p-3">{item.pageType}</td>
+
+//                   <td className="p-3">{item.noOfPage}</td>
+
+//                   <td className="p-3">₹{item.costPerPage}</td>
+
+//                   <td className="p-3 font-medium">
+//                     ₹{item.total}
+//                   </td>
+
+//                 </tr>
+//               ))}
+
+//             </tbody>
+
+//           </table>
+
+//         </div>
+
+//         {/* TOTALS */}
+
+//         <div className="mt-8 flex justify-end">
+
+//           <div className="w-[260px] space-y-3">
+
+//             <div className="flex justify-between text-[#575E6B]">
+//               <span>Total Pages</span>
+//               <span>{totalPages}</span>
+//             </div>
+
+//             <div className="flex justify-between text-lg font-bold text-[#16181D] border-t pt-3">
+//               <span>Grand Total</span>
+//               <span>₹{totalAmount}</span>
+//             </div>
+
+//           </div>
+
+//         </div>
+
+//         {/* BACK */}
+
+//         <div className="mt-10">
+
+//           <button
+//             onClick={() => navigate(-1)}
+//             className="text-[#1F8CF9] hover:underline"
+//           >
+//             ← Back
+//           </button>
+
+//         </div>
+
+//       </div>
+//     </Layout>
+//   );
+// }

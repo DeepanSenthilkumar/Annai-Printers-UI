@@ -2,12 +2,14 @@ import { ReactNode, useState, useEffect, useRef } from "react";
 import { useAuth } from "../auth/AuthContext";
 import { useOperatorCart } from "../context/OperatorCartContext";
 import AdminSidebar from "./AdminSidebar";
+import { useAdminBills } from "../context/AdminBillsContext";
 
 export default function Layout({ children }: { children: ReactNode }) {
   const { logout } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { clearCart, clearAll, clearServices } = useOperatorCart();
+  const {clearAdminBills} = useAdminBills();
   const role = localStorage.getItem("role");
   const userName = localStorage.getItem("userName") || "";
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -35,6 +37,8 @@ export default function Layout({ children }: { children: ReactNode }) {
       clearCart()
       clearServices()
       clearAll()
+    } else if (localStorage.getItem('role') === "Admin") {
+      clearAdminBills()
     }
     logout()
   }

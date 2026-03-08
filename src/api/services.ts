@@ -99,4 +99,20 @@ export const ApiService = {
       };
     }
   },
+  
+  getAllBill: async (requestBody: any) => {
+    try{
+      const res = await baseUrl.get(`/api/bills`, requestBody);
+      return res.data;
+    } catch (error: any) {
+      if (error.response && error.response.data) {
+        return error.response.data;
+      }
+
+      return {
+        isAdded: false,
+        message: "Something went wrong",
+      };
+    }
+  },
 };

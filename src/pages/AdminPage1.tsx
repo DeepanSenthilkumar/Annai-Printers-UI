@@ -1,71 +1,122 @@
 import Layout from "../components/Layout";
-import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useNavigate  } from "react-router-dom";
+import { useState, useEffect } from "react";
 import Tables, { Column } from "../components/Tables";
+import { ApiService } from "../api/services";
+import { useAdminBills } from "../context/AdminBillsContext";
+
+type BillItem = {
+  serviceId: string;
+  serviceName: string;
+  pageType: string;
+  pageTypeId: string;
+  costPerPage: number;
+  noOfPage: number;
+  total: number;
+};
 
 type BillData = {
-  id: number;
-  status: boolean;
-  bill: string;
-  user: string;
-  amount: number;
+  _id: string;
+  billNumber: string;
+  userId: string;
+  billTotal: number;
+  date: string;
+  printStatus: boolean;
+  items: BillItem[];
 };
 
 export default function AdminPage1() {
+  
   const navigate = useNavigate();
+  const { bills, setBills, summary, setSummary, pageNumber, setPageNumber, totalPages, setTotalPages} = useAdminBills();
   const [search, setSearch] = useState("");
+  const pageSize = 10;
+  const groupSize = 5;
 
-  const data = [
-    {
-      id: 1,
-      status: true,
-      bill: "BILL-1001",
-      user: "OP01",
-      amount: 2500,
-    },
-    {
-      id: 2,
-      status: false,
-      bill: "BILL-1002",
-      user: "OP02",
-      amount: 4000,
-    },
-  ];
+  const getAllBill = async (page = 1, searchText = "") => {
+    try {
+      const requestBody = {
+        pageNumber: page,
+        pageSize: pageSize,
+        userId: "",
+        billNumber: searchText,
+      };
+
+      const response = await ApiService.getAllBill(requestBody);
+
+      if (response?.isAdded) {
+        setBills(response.bills);
+        setSummary(response.todaySummary);
+        setPageNumber(response.pagination.currentPage);
+        setTotalPages(response.pagination.totalPages);
+      }
+    } catch (error) {
+      console.error("Fetch bill failed", error);
+    }
+  };
+
+  useEffect(() => {
+    debugger
+    if (bills.length === 0) {
+      getAllBill(1);
+    }
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      console.log('I am called from auto refresh')
+      getAllBill(pageNumber, search);
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, [pageNumber, search]);
+
+  const handleSearch = () => {
+    getAllBill(1, search);
+  };
+
+  const handleView = (row: BillData) => {
+    navigate("/detailView", { state: { bill: row, fromAdmin: true } });
+  };
+
+  const currentGroupStart = Math.floor((pageNumber - 1) / groupSize) * groupSize + 1;
+  const currentGroupEnd = Math.min(currentGroupStart + groupSize - 1, totalPages);
+  const pages = [];
+
+  for (let i = currentGroupStart; i <= currentGroupEnd; i++) {pages.push(i);}
+
+  const goToPage = (page: number) => {
+    setPageNumber(page);
+    getAllBill(page, search);
+  };
+
+  const goPrevGroup = () => {
+    if (currentGroupStart > 1) {
+      const page = currentGroupStart - 1;
+      setPageNumber(page);
+      getAllBill(page, search);
+    }
+  };
+
+  const goNextGroup = () => {
+    if (currentGroupEnd < totalPages) {
+      const page = currentGroupEnd + 1;
+      setPageNumber(page);
+      getAllBill(page, search);
+    }
+  };
 
   const columns: Column<BillData>[] = [
-    {
-      header: "S.No",
-      accessor: "id",
-      render: (_row: BillData, index: number) => index + 1,
+    {header: "S.No", accessor: "billNumber", render: (_row, index) => (pageNumber - 1) * pageSize + index + 1,},
+    {header: "Print Status", accessor: "printStatus",
+      render: (row) => (<span className={`inline-block w-3 h-3 rounded-full ${row.printStatus ? "bg-green-500": "bg-[#1F8CF9]"}`} title="Print Status"/>),
     },
-    {
-      header: "Print Status",
-      accessor: "status",
-      render: (row: BillData) => (
-        <span className={`inline-block w-3 h-3 rounded-full ${row.status ? "bg-[#1F8CF9]" : "bg-green-500"}`}/>
-      ),
-    },
-    { header: "Bill No", accessor: "bill" },
-    { header: "User ID", accessor: "user" },
-    {
-      header: "Total Amount",
-      accessor: "amount",
-      render: (row: BillData) => `₹${row.amount}`,
-    },
-    {
-      header: "Details",
-      accessor: "bill",
-      render: () => (
-        <button onClick={() => navigate("/detailView")} className="text-[#1F8CF9] hover:underline">
-          View
-        </button>
-      ),
-    },
-    {
-      header: "Action",
-      accessor: "bill",
-      render: () => (
-        <button className="text-gray-600 hover:text-[#1F8CF9]" title="Print">
+    { header: "Bill No", accessor: "billNumber" },
+    { header: "User ID", accessor: "userId" },
+    {header: "Total Amount", accessor: "billTotal", render: (row) => `₹${row.billTotal}`},
+    {header: "Action", accessor: "billNumber",
+      render: (row) => (
+        <button onClick={() => handleView(row)} className="text-gray-600 hover:text-[#1F8CF9]" title="Print">
           <span className="material-icons text-[20px]">print</span>
         </button>
       ),
@@ -76,10 +127,10 @@ export default function AdminPage1() {
     <Layout>
       {/* ===== Section 3 - Cards ===== */}
       <div className="grid grid-cols-4 gap-6 mb-10">
-        <Card title="Total Orders" value="152" />
-        <Card title="Revenue" value="₹1,24,000" />
-        <Card title="Completed" value="140" />
-        <Card title="Pending" value="12" />
+        <Card title="Total Orders" value={summary ? summary.totalBillsToday.toString() : "0"} />
+        <Card title="Revenue" value={summary ? `₹${summary.totalRevenueToday}` : "₹0"} />
+        <Card title="Completed" value={summary ? summary.totalPrinted.toString() : "0"} />
+        <Card title="Pending" value={summary ? summary.totalYetToPrint.toString() : "0"} />
       </div>
 
       {/* ===== Section 5 - Search + Download ===== */}
@@ -89,7 +140,7 @@ export default function AdminPage1() {
           <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by Bill No..."
            className="h-[42px] w-[250px] px-4 border border-[#E0E2E6] rounded-l-md outline-none focus:border-[#1F8CF9]"/>
 
-          <button className="h-[42px] px-4 flex justify-center items-center bg-[#1F8CF9] text-white rounded-r-md">
+          <button onClick={handleSearch} className="h-[42px] px-4 flex justify-center items-center bg-[#1F8CF9] text-white rounded-r-md">
             <span className="material-icons">search</span>
             Search
           </button>
@@ -103,10 +154,27 @@ export default function AdminPage1() {
 
       {/* ===== Section 4 - Table ===== */}
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-        <Tables<BillData> columns={columns} data={data} headerClassName="bg-[#1F8CF9] text-white"/>
+        <Tables<BillData> columns={columns} data={bills} headerClassName="bg-[#1F8CF9] text-white"/>
       </div>
 
+      <div className="flex justify-center items-center gap-2 mt-8">
+        <button onClick={goPrevGroup} disabled={currentGroupStart === 1}
+         className="w-9 h-9 flex items-center justify-center rounded-md border border-[#E0E2E6] bg-white hover:bg-gray-100 disabled:opacity-40">
+          <span className="material-icons text-[18px]">chevron_left</span>
+        </button>
 
+        {pages.map((page) => (
+          <button key={page} onClick={() => goToPage(page)} className={`w-9 h-9 rounded-md border text-sm font-medium
+             ${page === pageNumber? "bg-[#1F8CF9] text-white border-[#1F8CF9]" : "bg-white border-[#E0E2E6] text-[#575E6B] hover:bg-gray-100"}`}>
+            {page}
+          </button>
+        ))}
+
+        <button onClick={goNextGroup} disabled={currentGroupEnd === totalPages}
+         className="w-9 h-9 flex items-center justify-center rounded-md border border-[#E0E2E6] bg-white hover:bg-gray-100 disabled:opacity-40">
+          <span className="material-icons text-[18px]">chevron_right</span>
+        </button>
+      </div>
     </Layout>
   );
 }
