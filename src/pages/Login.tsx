@@ -59,7 +59,7 @@ export default function Login() {
         return;
       }
 
-      login(res.token, res.role, res.username);
+      login(res.token, res.role, res.name);
       toaster.success('Login Success', "Success");
 
       if (res.role === "Admin") {
