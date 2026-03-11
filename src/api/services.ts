@@ -196,4 +196,21 @@ export const ApiService = {
       };
     }
   },
+
+  changePrintStatus: async (billNumber: string, requestBody: any) => {
+    debugger
+    try{
+      const response = await baseUrl.patch(`api/bills/${billNumber}/print-status`, requestBody)
+      return response.data
+    } catch (error: any) {
+      if (error.response && error.response.data) {
+        return error.response.data;
+      }
+
+      return {
+        isAdded: false,
+        message: "Something went wrong",
+      };
+    }
+  }
 };

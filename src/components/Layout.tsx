@@ -33,11 +33,11 @@ export default function Layout({ children }: { children: ReactNode }) {
 
   const triggerLogout = () => {
     debugger
-    if( localStorage.getItem('role') === 'Operator'){
+    if( role === 'Operator'){
       clearCart()
       clearServices()
       clearAll()
-    } else if (localStorage.getItem('role') === "Admin") {
+    } else if (role === "Admin") {
       clearAdminBills()
     }
     logout()
@@ -47,7 +47,7 @@ export default function Layout({ children }: { children: ReactNode }) {
     <div className="min-h-screen flex flex-col bg-[#F5F8FC]">
       <header className="h-[70px] bg-white shadow-sm flex items-center justify-between px-10 print:hidden">
         
-        <h1 onClick={() => setIsSidebarOpen((prev) => !prev)} className="text-xl font-bold text-[#1F8CF9] cursor-pointer select-none">
+        <h1 onClick={() => setIsSidebarOpen((prev) => !prev)} className={`text-xl font-bold text-[#1F8CF9] ${role === "Admin"? "cursor-pointer" : "cursor-default"} select-none`}>
           Annai Printers
         </h1>
 

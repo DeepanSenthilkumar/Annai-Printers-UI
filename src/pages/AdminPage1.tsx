@@ -55,7 +55,7 @@ export default function AdminPage1() {
         billNumber: searchText,
       };
       console.log(requestBody);
-      setBills([])
+      // setBills([])
       const response = await ApiService.getAllBill(requestBody);
 
       if (response?.isAdded) {
@@ -74,7 +74,7 @@ export default function AdminPage1() {
     const interval = setInterval(() => {
       console.log('I am called from auto refresh')
       getAllBill(pageNumber, search);
-    }, 60000);
+    }, 10000);
 
     return () => clearInterval(interval);
   }, [pageNumber, search]);
@@ -84,6 +84,7 @@ export default function AdminPage1() {
   };
 
   const handleView = (row: BillData) => {
+    console.log(row)
     navigate("/detailView", { state: { bill: row, fromAdmin: true } });
   };
 
@@ -119,7 +120,7 @@ export default function AdminPage1() {
   const columns: Column<BillData>[] = [
     {header: "S.No", accessor: "billNumber", render: (_row, index) => (pageNumber - 1) * pageSize + index + 1,},
     {header: "Print Status", accessor: "printStatus",
-      render: (row) => (<span className={`inline-block w-3 h-3 rounded-full ${row.printStatus ? "bg-green-500": "bg-[#1F8CF9]"}`} title="Print Status"/>),
+      render: (row) => (<span onClick={() => updatePrintStatus(row)} className={`inline-block w-3 h-3 rounded-full ${row.printStatus ? "bg-green-500 cursor-default": "bg-[#1F8CF9] cursor-pointer"}`} title="Print Status"/>),
     },
     { header: "Bill No", accessor: "billNumber" },
     { header: "User ID", accessor: "userId" },
@@ -133,46 +134,79 @@ export default function AdminPage1() {
     },
   ];
 
+  const updatePrintStatus = async (event: any) => {
+    console.log(event);
+    debugger
+    if (event.printStatus) {
+      return
+    }
+    const billNumber= event.billNumber
+    try{
+      const requestBody = {
+        "printStatus" : true
+      }
+
+      const response = await ApiService.changePrintStatus(billNumber, requestBody);
+      
+      if (response.isAdded) {
+        toaster.success("Status Updated", "Success");
+        getAllBill();
+      }
+    } catch(error) {
+      toaster.error("Status Update failed", "Error")
+      console.log(error)
+    }
+  }
+
   const handleExportBills = async () => {
     try {
       const response = await ApiService.exportBills();
 
       if (!response?.isAdded) {
-        // alert(response.message);
         toaster.error("Export Failed", "Error");
         return;
       }
 
-      // decode base64
-      const byteCharacters = atob(response.file);
-      const byteNumbers = new Array(byteCharacters.length).fill(0).map((_, i) => byteCharacters.charCodeAt(i));
+      let blob: Blob;
+      try {
+        // decode base64
+        const byteCharacters = atob(response.file);
+        const byteNumbers = new Array(byteCharacters.length).fill(0).map((_, i) => byteCharacters.charCodeAt(i));
+        const byteArray = new Uint8Array(byteNumbers);
 
-      const byteArray = new Uint8Array(byteNumbers);
+        blob = new Blob([byteArray], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        });
+      } catch (decodeError) {
+        console.error("Base64 decode failed", decodeError);
+        toaster.error("File generation failed", "Error");
+        return;
+      }
 
-      const blob = new Blob([byteArray], {
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      });
+      // protection check
+      if (!blob || blob.size === 0) {
+        toaster.error("Generated file is empty", "Error");
+        return;
+      }
 
-      // local date for filename
+      // local date filename
       const today = new Date();
-      const formattedDate = today.toLocaleDateString("en-GB").replace(/\//g, "-"); // dd-mm-yyyy
+      const formattedDate = today.toLocaleDateString("en-GB").replace(/\//g, "-");
       const fileName = `Annai Printer Report ${formattedDate}.xlsx`;
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
       a.download = fileName;
+      document.body.appendChild(a);
       a.click();
+      document.body.removeChild(a);
 
       URL.revokeObjectURL(url);
 
-      // alert(response.message);
-      // toaster.success(response.message, "Success");
-      clearAllBills()
-
-
-    } catch (error) {
+      // only after successful generation trigger
+      clearAllBills();
+    } catch(error) {
       console.error(error);
-      // alert("Export failed. Please try again.");
       toaster.error("Export failed. Please try again", "Error");
     }
   };
@@ -186,8 +220,8 @@ export default function AdminPage1() {
         toaster.success("Export successfull", "Success");
         getAllBill();
       }
-    } catch (err) {
-      console.log("Something went wrong. Please try again", "Error");
+    } catch(err) {
+      toaster.error("Something went wrong. Please try again", "Error");
     }
   }
 
@@ -197,9 +231,8 @@ export default function AdminPage1() {
       <div className="grid grid-cols-4 gap-6 mb-10">
         <Card title="Total Orders" value={summary ? summary.totalBillsToday.toString() : "0"} />
         <Card title="Revenue" value={summary ? `₹${summary.totalRevenueToday}` : "₹0"} />
-        {/* <Card title="Completed" value={summary ? summary.totalPrinted.toString() : "0"} /> */}
-        <Card title="Completed" value={summary ? summary.totalYetToPrint.toString() : "0"} />
-        {/* <Card title="Pending" value={summary ? summary.totalYetToPrint.toString() : "0"} /> */}
+        <Card title="Completed" value={summary ? summary.totalPrinted.toString() : "0"} />
+        <Card title="Pending" value={summary ? summary.totalYetToPrint.toString() : "0"} />
       </div>
 
       {/* ===== Section 5 - Search + Download ===== */}
