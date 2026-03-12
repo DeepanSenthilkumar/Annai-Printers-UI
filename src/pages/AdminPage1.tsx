@@ -120,7 +120,7 @@ export default function AdminPage1() {
   const columns: Column<BillData>[] = [
     {header: "S.No", accessor: "billNumber", render: (_row, index) => (pageNumber - 1) * pageSize + index + 1,},
     {header: "Print Status", accessor: "printStatus",
-      render: (row) => (<span onClick={() => updatePrintStatus(row)} className={`inline-block w-3 h-3 rounded-full ${row.printStatus ? "bg-green-500 cursor-default": "bg-[#1F8CF9] cursor-pointer"}`} title="Print Status"/>),
+      render: (row) => (<span onClick={() => updatePrintStatus(row)} className={`inline-block w-3 h-3 rounded-full ${row.printStatus ? "bg-green-500 cursor-default": "bg-[#1F8CF9] cursor-pointer"}`} title={row.printStatus? "Order Delivered" : "Yet to Deliver"}/>),
     },
     { header: "Bill No", accessor: "billNumber" },
     { header: "User ID", accessor: "userId" },
