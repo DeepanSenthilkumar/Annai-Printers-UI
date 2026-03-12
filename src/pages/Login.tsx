@@ -50,7 +50,7 @@ export default function Login() {
     debugger
 
     try {
-      localStorage.clear()
+      sessionStorage.clear()
       const res = await ApiService.login(requestBody) as any;
 
       if (!res.isAdded) {

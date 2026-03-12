@@ -5,7 +5,7 @@ export default function AdminSidebar({ onClose }: { onClose?: () => void }) {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const role = localStorage.getItem("role");
+  const role = sessionStorage.getItem("role");
 
   const menus = menuConfig.filter((m) => m.roles.includes(role || ""));
 

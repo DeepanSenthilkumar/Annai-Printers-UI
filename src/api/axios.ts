@@ -21,11 +21,11 @@ export const createAxiosInstance = (baseURL: string) => {
 
   // REQUEST INTERCEPTOR (token validation)
   instance.interceptors.request.use((config) => {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
 
     if (token) {
       if (isTokenExpired(token)) {
-        localStorage.clear();
+        sessionStorage.clear();
 
         toaster.error("Session expired. Please login again.", "Session Expired");
 

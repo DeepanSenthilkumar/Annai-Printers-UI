@@ -18,17 +18,17 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(
-    localStorage.getItem("token")
+    sessionStorage.getItem("token")
   );
   // const { clearCart} = useOperatorCart();
   const [role, setRole] = useState<"Admin" | "Operator" | null>(
-    (localStorage.getItem("role") as "Admin" | "Operator") || null
+    (sessionStorage.getItem("role") as "Admin" | "Operator") || null
   );
 
   const login = (token: string, role: "Admin" | "Operator", userName: string) => {
-    localStorage.setItem("token", token);
-    localStorage.setItem("role", role);
-    localStorage.setItem("userName", userName);
+    sessionStorage.setItem("token", token);
+    sessionStorage.setItem("role", role);
+    sessionStorage.setItem("userName", userName);
     setToken(token);
     setRole(role);
   };
@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     debugger
     const response = await ApiService.logout() as any
     if(response) {
-      localStorage.clear();
+      sessionStorage.clear();
       // clearCart()
       setToken(null);
       toaster.success('Logged Out', "Success");

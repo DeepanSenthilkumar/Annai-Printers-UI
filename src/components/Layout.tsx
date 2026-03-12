@@ -10,8 +10,8 @@ export default function Layout({ children }: { children: ReactNode }) {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { clearCart, clearAll, clearServices } = useOperatorCart();
   const {clearAdminBills} = useAdminBills();
-  const role = localStorage.getItem("role");
-  const userName = localStorage.getItem("userName") || "";
+  const role = sessionStorage.getItem("role");
+  const userName = sessionStorage.getItem("userName") || "";
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Close dropdown when clicking outside

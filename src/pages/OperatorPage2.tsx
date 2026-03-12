@@ -105,7 +105,7 @@ export default function OperatorPage2() {
     });
 
     const requestBody = {
-      userId: localStorage.getItem('userName'), // replace later with logged user
+      userId: sessionStorage.getItem('userName'), // replace later with logged user
       billTotal: grandTotal,
       date: localDate,
       printStatus: false,
